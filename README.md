@@ -1,46 +1,25 @@
 # Pet Shelter Project
 
-This repository contains **two separate assignments**:
-
-- **Assignment 1:** Frontend (HTML/CSS/JS)
-- **Assignment 2:** Backend (Django)
-
----
+This repository contains **Individual extension made by Mihai-Adrian Briceag**:
 
 ## Folder Structure
 
 ```
-pet-shelter/
-├── frontend_assignment/    # Assignment 1 (Frontend)
-└── backend_assignment/     # Assignment 2 (Django Backend)
+individual-extension-petshelter/
+├── individual_extension/  
+└── README.md    
 ```
 
 ---
 
-## Assignment 1 – Frontend
-
-### Running the Frontend
-
-1. Navigate to the frontend folder:
-
-```bash
-   cd frontend_assignment
-```
-
-2. Open with Live Server:
-   - Right-click `index.html` in VS Code
-   - Select **"Open with Live Server"**
-
----
-
-## Assignment 2 – Django Backend
+## Assignment 3 – Individual Extension
 
 ### Setup & Installation
 
-1. Navigate to the backend folder:
+1. Navigate to the project folder:
 
 ```bash
-   cd backend_assignment
+   cd individual_extension
 ```
 
 2. Create a virtual environment (recommended):
@@ -75,10 +54,18 @@ Visit: http://localhost:8000
 - **Username:** `user`
 - **Password:** `Password1.`
 
+### Manager Access
+
+- **Username:** manager
+- **Password:** manager123
+- **Email:** manager@manager.com
+- **Role:** Staff (not superuser)
+
 ### Admin Access
 
 - **URL:** http://localhost:8000/admin
 - **Username:** `admin`
 - **Password:** `admin123`
+- **Role:** Superuser
 
 ---
