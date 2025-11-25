@@ -74,7 +74,3 @@ Templates check for superuser to show Django Admin link:
 4. `shelter/templates/shelter/admin/admin_pets.html`
 5. `shelter/templates/shelter/admin/admin_contacts.html`
 6. `shelter/templates/shelter/admin/admin_contact_detail.html`
-
-
-Username: manager
-Password: manager123
