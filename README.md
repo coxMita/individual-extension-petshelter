@@ -56,9 +56,8 @@ Visit: http://localhost:8000
 
 ### Manager Access
 
-- **Username:** manager
-- **Password:** manager123
-- **Email:** manager@manager.com
+- **Username:** `manager`
+- **Password:** `manager123`
 - **Role:** Staff (not superuser)
 
 ### Admin Access
