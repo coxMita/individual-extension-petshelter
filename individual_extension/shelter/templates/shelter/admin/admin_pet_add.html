@@ -1,0 +1,404 @@
+{% extends 'shelter/base.html' %}
+{% load static %}
+
+{% block title %}Add New Pet - Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-hero">
+    <div class="container">
+        <h1>Add New Pet</h1>
+        <p class="lead">Add a new pet to the shelter</p>
+    </div>
+</section>
+
+<section class="admin-content">
+    <div class="container">
+        <div class="admin-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="admin-sidebar">
+                <nav class="admin-nav">
+                    <div class="admin-profile-header">
+                        <h4>{{ user.first_name|default:user.username }}</h4>
+                        <p class="admin-role">{% if user.is_superuser %}Administrator{% else %}Manager{% endif %}</p>
+                    </div>
+                    <a href="{% url 'admin_dashboard' %}" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'admin_applications' %}" class="nav-item">
+                        <span class="nav-icon">📝</span>
+                        All Applications
+                    </a>
+                    <a href="{% url 'admin_pets' %}" class="nav-item active">
+                        <span class="nav-icon">🐾</span>
+                        Manage Pets
+                    </a>
+                    <a href="{% url 'admin_contacts' %}" class="nav-item">
+                        <span class="nav-icon">📞</span>
+                        Contact Messages
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="/admin/" class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        Django Admin
+                    </a>
+                    {% endif %}
+                    <div class="nav-divider"></div>
+                    <a href="{% url 'pets' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        Public Site
+                    </a>
+                    <a href="{% url 'logout' %}" class="nav-item">
+                        <span class="nav-icon">🚪</span>
+                        Logout
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="admin-main">
+                <div class="back-nav">
+                    <a href="{% url 'admin_pets' %}" class="btn btn-outline">← Back to Pets</a>
+                </div>
+
+                <div class="pet-edit-form">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <h2>Basic Information</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Pet Name *</label>
+                                <input type="text" id="name" name="name" required class="form-control" placeholder="Enter pet name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="type">Type *</label>
+                                <select id="type" name="type" required class="form-control">
+                                    <option value="">Select type...</option>
+                                    <option value="dog">Dog</option>
+                                    <option value="cat">Cat</option>
+                                    <option value="rabbit">Rabbit</option>
+                                    <option value="bird">Bird</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="breed">Breed *</label>
+                                <input type="text" id="breed" name="breed" required class="form-control" placeholder="e.g., Golden Retriever">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="age">Age *</label>
+                                <input type="text" id="age" name="age" required class="form-control" placeholder="e.g., 3 years">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gender">Gender *</label>
+                                <select id="gender" name="gender" required class="form-control">
+                                    <option value="">Select gender...</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="size">Size *</label>
+                                <select id="size" name="size" required class="form-control">
+                                    <option value="">Select size...</option>
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Large">Large</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="color">Color *</label>
+                                <input type="text" id="color" name="color" required class="form-control" placeholder="e.g., Golden">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" rows="5" required class="form-control" placeholder="Describe the pet's personality and characteristics..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="personality">Personality Traits (comma-separated)</label>
+                            <input type="text" id="personality" name="personality" class="form-control" placeholder="Friendly, Playful, Energetic">
+                            <small class="form-help">Enter traits separated by commas</small>
+                        </div>
+
+                        <h2>Medical Information</h2>
+                        <div class="checkboxes-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="vaccinated" checked>
+                                Vaccinated
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="spayed_neutered">
+                                Spayed/Neutered
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="microchipped">
+                                Microchipped
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="special_needs" id="special_needs" onchange="toggleSpecialNeeds()">
+                                Special Needs
+                            </label>
+                        </div>
+
+                        <div class="form-group" id="special-needs-group" style="display: none;">
+                            <label for="special_needs_description">Special Needs Description</label>
+                            <textarea id="special_needs_description" name="special_needs_description" rows="3" class="form-control" placeholder="Describe any special needs..."></textarea>
+                        </div>
+
+                        <h2>Images</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="main_image">Main Image *</label>
+                                <input type="file" id="main_image" name="main_image" accept="image/*" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="image_2">Image 2 (Optional)</label>
+                                <input type="file" id="image_2" name="image_2" accept="image/*" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="image_3">Image 3 (Optional)</label>
+                                <input type="file" id="image_3" name="image_3" accept="image/*" class="form-control">
+                            </div>
+                        </div>
+
+                        <h2>Status & Details</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="status">Status *</label>
+                                <select id="status" name="status" required class="form-control">
+                                    <option value="available" selected>Available</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="adopted">Adopted</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="arrival_date">Arrival Date *</label>
+                                <input type="date" id="arrival_date" name="arrival_date" value="{{ today|date:'Y-m-d' }}" required class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="adoption_fee">Adoption Fee ($) *</label>
+                                <input type="number" id="adoption_fee" name="adoption_fee" value="150.00" step="0.01" required class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="featured">
+                                Featured on Homepage
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">Add Pet</button>
+                            <a href="{% url 'admin_pets' %}" class="btn btn-outline">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.admin-hero {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+    color: var(--white);
+    padding: var(--spacing-2xl) 0;
+    text-align: center;
+}
+
+.admin-content {
+    padding: var(--spacing-3xl) 0;
+}
+
+.admin-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: var(--spacing-3xl);
+}
+
+.admin-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.admin-nav {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-profile-header {
+    text-align: center;
+    padding: var(--spacing-lg) 0;
+    border-bottom: 2px solid var(--background);
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-profile-header h4 {
+    color: var(--accent-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.admin-role {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.nav-divider {
+    height: 1px;
+    background: var(--background);
+    margin: var(--spacing-md) 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    margin-bottom: var(--spacing-sm);
+}
+
+.nav-item:hover {
+    background: var(--background);
+}
+
+.nav-item.active {
+    background: var(--accent-color);
+    color: var(--white);
+}
+
+.nav-icon {
+    font-size: var(--font-size-xl);
+}
+
+.admin-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+.pet-edit-form {
+    background: var(--white);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.pet-edit-form h2 {
+    color: var(--accent-color);
+    margin: var(--spacing-2xl) 0 var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.pet-edit-form h2:first-of-type {
+    margin-top: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--gray-medium);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.form-help {
+    display: block;
+    margin-top: var(--spacing-xs);
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.checkboxes-row {
+    display: flex;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    border-top: 2px solid var(--gray-light);
+}
+
+.back-nav {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.lead {
+    font-size: var(--font-size-xl);
+    opacity: 0.9;
+}
+</style>
+
+<script>
+function toggleSpecialNeeds() {
+    const checkbox = document.getElementById('special_needs');
+    const group = document.getElementById('special-needs-group');
+    group.style.display = checkbox.checked ? 'block' : 'none';
+}
+</script>
+{% endblock %}

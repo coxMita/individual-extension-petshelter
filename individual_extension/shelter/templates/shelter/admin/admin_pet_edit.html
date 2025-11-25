@@ -1,0 +1,355 @@
+{% extends 'shelter/base.html' %}
+{% load static %}
+
+{% block title %}Edit Pet - {{ pet.name }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="admin-hero">
+    <div class="container">
+        <h1>Edit Pet: {{ pet.name }}</h1>
+        <p class="lead">Update pet information</p>
+    </div>
+</section>
+
+<section class="admin-content">
+    <div class="container">
+        <div class="admin-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="admin-sidebar">
+                <nav class="admin-nav">
+                    <div class="admin-profile-header">
+                        <h4>{{ user.first_name|default:user.username }}</h4>
+                        <p class="admin-role">{% if user.is_superuser %}Administrator{% else %}Manager{% endif %}</p>
+                    </div>
+                    <a href="{% url 'admin_dashboard' %}" class="nav-item">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'admin_applications' %}" class="nav-item">
+                        <span class="nav-icon">📝</span>
+                        All Applications
+                    </a>
+                    <a href="{% url 'admin_pets' %}" class="nav-item active">
+                        <span class="nav-icon">🐾</span>
+                        Manage Pets
+                    </a>
+                    <a href="{% url 'admin_contacts' %}" class="nav-item">
+                        <span class="nav-icon">📞</span>
+                        Contact Messages
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="/admin/" class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        Django Admin
+                    </a>
+                    {% endif %}
+                    <div class="nav-divider"></div>
+                    <a href="{% url 'pets' %}" class="nav-item">
+                        <span class="nav-icon">🏠</span>
+                        Public Site
+                    </a>
+                    <a href="{% url 'logout' %}" class="nav-item">
+                        <span class="nav-icon">🚪</span>
+                        Logout
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="admin-main">
+                <div class="back-nav">
+                    <a href="{% url 'admin_pets' %}" class="btn btn-outline">← Back to Pets</a>
+                    <a href="{% url 'pet_detail' pet.pk pet.slug %}" class="btn btn-secondary" target="_blank">View on Site</a>
+                </div>
+
+                <div class="pet-edit-form">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <h2>Basic Information</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Pet Name *</label>
+                                <input type="text" id="name" name="name" value="{{ pet.name }}" required class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="type">Type *</label>
+                                <select id="type" name="type" required class="form-control">
+                                    <option value="dog" {% if pet.type == 'dog' %}selected{% endif %}>Dog</option>
+                                    <option value="cat" {% if pet.type == 'cat' %}selected{% endif %}>Cat</option>
+                                    <option value="rabbit" {% if pet.type == 'rabbit' %}selected{% endif %}>Rabbit</option>
+                                    <option value="bird" {% if pet.type == 'bird' %}selected{% endif %}>Bird</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="breed">Breed *</label>
+                                <input type="text" id="breed" name="breed" value="{{ pet.breed }}" required class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="age">Age *</label>
+                                <input type="text" id="age" name="age" value="{{ pet.age }}" required class="form-control" placeholder="e.g., 3 years">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gender">Gender *</label>
+                                <select id="gender" name="gender" required class="form-control">
+                                    <option value="Male" {% if pet.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if pet.gender == 'Female' %}selected{% endif %}>Female</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="size">Size *</label>
+                                <select id="size" name="size" required class="form-control">
+                                    <option value="Small" {% if pet.size == 'Small' %}selected{% endif %}>Small</option>
+                                    <option value="Medium" {% if pet.size == 'Medium' %}selected{% endif %}>Medium</option>
+                                    <option value="Large" {% if pet.size == 'Large' %}selected{% endif %}>Large</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="color">Color *</label>
+                                <input type="text" id="color" name="color" value="{{ pet.color }}" required class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" rows="5" required class="form-control">{{ pet.description }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="personality">Personality Traits (comma-separated)</label>
+                            <input type="text" id="personality" name="personality" value="{{ pet.personality|join:', ' }}" class="form-control" placeholder="Friendly, Playful, Energetic">
+                            <small class="form-help">Enter traits separated by commas</small>
+                        </div>
+
+                        <h2>Medical Information</h2>
+                        <div class="checkboxes-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="vaccinated" {% if pet.vaccinated %}checked{% endif %}>
+                                Vaccinated
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="spayed_neutered" {% if pet.spayed_neutered %}checked{% endif %}>
+                                Spayed/Neutered
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="microchipped" {% if pet.microchipped %}checked{% endif %}>
+                                Microchipped
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="special_needs" id="special_needs" {% if pet.special_needs %}checked{% endif %} onchange="toggleSpecialNeeds()">
+                                Special Needs
+                            </label>
+                        </div>
+
+                        <div class="form-group {% if not pet.special_needs %}hidden{% endif %}" id="special-needs-group">
+                            <label for="special_needs_description">Special Needs Description</label>
+                            <textarea id="special_needs_description" name="special_needs_description" rows="3" class="form-control">{{ pet.special_needs_description }}</textarea>
+                        </div>
+
+                        <h2>Images</h2>
+                        <div class="current-images">
+                            {% if pet.main_image %}
+                            <div class="image-preview">
+                                <img src="{{ pet.main_image.url }}" alt="Main image">
+                                <p>Current Main Image</p>
+                            </div>
+                            {% endif %}
+                            {% if pet.image_2 %}
+                            <div class="image-preview">
+                                <img src="{{ pet.image_2.url }}" alt="Image 2">
+                                <p>Current Image 2</p>
+                            </div>
+                            {% endif %}
+                            {% if pet.image_3 %}
+                            <div class="image-preview">
+                                <img src="{{ pet.image_3.url }}" alt="Image 3">
+                                <p>Current Image 3</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="main_image">Main Image</label>
+                                <input type="file" id="main_image" name="main_image" accept="image/*" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="image_2">Image 2</label>
+                                <input type="file" id="image_2" name="image_2" accept="image/*" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="image_3">Image 3</label>
+                                <input type="file" id="image_3" name="image_3" accept="image/*" class="form-control">
+                            </div>
+                        </div>
+
+                        <h2>Status & Details</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="status">Status *</label>
+                                <select id="status" name="status" required class="form-control">
+                                    <option value="available" {% if pet.status == 'available' %}selected{% endif %}>Available</option>
+                                    <option value="pending" {% if pet.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="adopted" {% if pet.status == 'adopted' %}selected{% endif %}>Adopted</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="arrival_date">Arrival Date *</label>
+                                <input type="date" id="arrival_date" name="arrival_date" value="{{ pet.arrival_date|date:'Y-m-d' }}" required class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="adoption_fee">Adoption Fee ($) *</label>
+                                <input type="number" id="adoption_fee" name="adoption_fee" value="{{ pet.adoption_fee }}" step="0.01" required class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="featured" {% if pet.featured %}checked{% endif %}>
+                                Featured on Homepage
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">Save Changes</button>
+                            <a href="{% url 'admin_pets' %}" class="btn btn-outline">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Include all the admin dashboard styles plus these form-specific styles */
+.pet-edit-form {
+    background: var(--white);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.pet-edit-form h2 {
+    color: var(--accent-color);
+    margin: var(--spacing-2xl) 0 var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--accent-color);
+}
+
+.pet-edit-form h2:first-of-type {
+    margin-top: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--gray-medium);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.form-help {
+    display: block;
+    margin-top: var(--spacing-xs);
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
+}
+
+.checkboxes-row {
+    display: flex;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+.current-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+.image-preview p {
+    text-align: center;
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--text-light);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    border-top: 2px solid var(--gray-light);
+}
+
+.back-nav {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+</style>
+
+<script>
+function toggleSpecialNeeds() {
+    const checkbox = document.getElementById('special_needs');
+    const group = document.getElementById('special-needs-group');
+    group.style.display = checkbox.checked ? 'block' : 'none';
+}
+</script>
+{% endblock %}

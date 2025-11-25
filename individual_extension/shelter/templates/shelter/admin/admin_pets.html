@@ -127,8 +127,7 @@
                                 <!-- Quick Actions -->
                                 <div class="pet-actions">
                                     <a href="{% url 'pet_detail' pet.pk pet.slug %}" class="btn-compact btn-outline">View</a>
-                                    <a href="/admin/shelter/pet/{{ pet.id }}/change/" class="btn-compact btn-primary">Edit</a>
-                                    {% if pet.status == 'available' %}
+                                    <a href="{% url 'admin_pet_edit' pet.id %}" class="btn-compact btn-primary">Edit</a>                                    {% if pet.status == 'available' %}
                                     <a href="{% url 'admin_applications' %}?search={{ pet.name }}" class="btn-compact btn-secondary">Apps</a>
                                     {% endif %}
                                 </div>
@@ -162,7 +161,7 @@
                     <div class="no-pets">
                         <h3>No pets found</h3>
                         <p>No pets match your current filters.</p>
-                        <a href="/admin/shelter/pet/add/" class="btn btn-primary">Add New Pet</a>
+                        <a href="{% url 'admin_pet_add' %}" class="btn btn-primary">➕ Add New Pet</a>
                     </div>
                     {% endif %}
                 </div>
@@ -182,7 +181,7 @@
                     </div>
                     
                     <div class="quick-actions">
-                        <a href="/admin/shelter/pet/add/" class="btn btn-primary">➕ Add New Pet</a>
+                        <a href="{% url 'admin_pet_add' %}" class="btn btn-primary">➕ Add New Pet</a>
                         <a href="/admin/shelter/pet/" class="btn btn-outline">Django Admin</a>
                     </div>
                 </div>

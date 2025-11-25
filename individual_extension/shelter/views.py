@@ -536,3 +536,111 @@ def admin_stats_api(request):
         ).count(),
     }
     return JsonResponse(stats)
+
+@login_required
+@user_passes_test(is_admin_user)
+def admin_pet_edit(request, pet_id):
+    """Admin/Manager view for editing a pet"""
+    pet = get_object_or_404(Pet, id=pet_id)
+    
+    if request.method == 'POST':
+        pet.name = request.POST.get('name')
+        pet.type = request.POST.get('type')
+        pet.breed = request.POST.get('breed')
+        pet.age = request.POST.get('age')
+        pet.gender = request.POST.get('gender')
+        pet.size = request.POST.get('size')
+        pet.color = request.POST.get('color')
+        pet.description = request.POST.get('description')
+        
+        # Handle personality
+        personality_text = request.POST.get('personality', '')
+        if personality_text:
+            import json
+            try:
+                pet.personality = json.loads(personality_text)
+            except:
+                pet.personality = [t.strip() for t in personality_text.split(',') if t.strip()]
+        
+        # Medical info
+        pet.vaccinated = request.POST.get('vaccinated') == 'on'
+        pet.spayed_neutered = request.POST.get('spayed_neutered') == 'on'
+        pet.microchipped = request.POST.get('microchipped') == 'on'
+        pet.special_needs = request.POST.get('special_needs') == 'on'
+        pet.special_needs_description = request.POST.get('special_needs_description', '')
+        
+        # Status
+        pet.status = request.POST.get('status')
+        pet.arrival_date = request.POST.get('arrival_date')
+        pet.adoption_fee = request.POST.get('adoption_fee')
+        pet.featured = request.POST.get('featured') == 'on'
+        
+        # Images
+        if 'main_image' in request.FILES:
+            pet.main_image = request.FILES['main_image']
+        if 'image_2' in request.FILES:
+            pet.image_2 = request.FILES['image_2']
+        if 'image_3' in request.FILES:
+            pet.image_3 = request.FILES['image_3']
+        
+        pet.save()
+        messages.success(request, f'{pet.name} updated successfully!')
+        return redirect('admin_pets')
+    
+    return render(request, 'shelter/admin/admin_pet_edit.html', {'pet': pet})
+
+
+@login_required
+@user_passes_test(is_admin_user)
+def admin_pet_add(request):
+    """Admin/Manager view for adding a new pet"""
+    
+    if request.method == 'POST':
+        pet = Pet()
+        pet.name = request.POST.get('name')
+        pet.type = request.POST.get('type')
+        pet.breed = request.POST.get('breed')
+        pet.age = request.POST.get('age')
+        pet.gender = request.POST.get('gender')
+        pet.size = request.POST.get('size')
+        pet.color = request.POST.get('color')
+        pet.description = request.POST.get('description')
+        
+        # Handle personality
+        personality_text = request.POST.get('personality', '')
+        if personality_text:
+            import json
+            try:
+                pet.personality = json.loads(personality_text)
+            except:
+                pet.personality = [t.strip() for t in personality_text.split(',') if t.strip()]
+        else:
+            pet.personality = []
+        
+        # Medical info
+        pet.vaccinated = request.POST.get('vaccinated') == 'on'
+        pet.spayed_neutered = request.POST.get('spayed_neutered') == 'on'
+        pet.microchipped = request.POST.get('microchipped') == 'on'
+        pet.special_needs = request.POST.get('special_needs') == 'on'
+        pet.special_needs_description = request.POST.get('special_needs_description', '')
+        
+        # Status
+        pet.status = request.POST.get('status')
+        pet.arrival_date = request.POST.get('arrival_date')
+        pet.adoption_fee = request.POST.get('adoption_fee')
+        pet.featured = request.POST.get('featured') == 'on'
+        
+        # Images
+        if 'main_image' in request.FILES:
+            pet.main_image = request.FILES['main_image']
+        if 'image_2' in request.FILES:
+            pet.image_2 = request.FILES['image_2']
+        if 'image_3' in request.FILES:
+            pet.image_3 = request.FILES['image_3']
+        
+        pet.save()
+        messages.success(request, f'{pet.name} added successfully!')
+        return redirect('admin_pets')
+    
+    from django.utils import timezone
+    return render(request, 'shelter/admin/admin_pet_add.html', {'today': timezone.now().date()})

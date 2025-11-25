@@ -44,8 +44,14 @@ urlpatterns = [
     path('admin-dashboard/applications/<int:application_id>/update-status/', views.admin_update_application_status, name='admin_update_application_status'),
     path('admin-dashboard/applications/<int:application_id>/update-notes/', views.admin_update_application_notes, name='admin_update_application_notes'),
     path('admin-dashboard/pets/', views.admin_pets, name='admin_pets'),
+    
+    # Pet management URLs for managers
+    path('admin-dashboard/pets/add/', views.admin_pet_add, name='admin_pet_add'),
+    path('admin-dashboard/pets/<int:pet_id>/edit/', views.admin_pet_edit, name='admin_pet_edit'),
+    
     path('admin-dashboard/contacts/', views.admin_contacts, name='admin_contacts'),
     path('admin-dashboard/contacts/<int:contact_id>/', views.admin_contact_detail, name='admin_contact_detail'),
     path('admin-dashboard/contacts/<int:contact_id>/update-status/', views.admin_update_contact_status, name='admin_update_contact_status'),
     path('admin-dashboard/api/stats/', views.admin_stats_api, name='admin_stats_api'),
+
 ]
