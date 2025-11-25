@@ -1,13 +1,13 @@
 {% extends 'shelter/base.html' %}
 {% load static %}
 
-{% block title %}Manage Applications - Admin Dashboard{% endblock %}
+{% block title %}Contact Messages - Admin Dashboard{% endblock %}
 
 {% block content %}
 <section class="admin-hero">
     <div class="container">
-        <h1>Manage Applications</h1>
-        <p class="lead">Review and update adoption application statuses</p>
+        <h1>Contact Messages</h1>
+        <p class="lead">Manage and respond to contact form submissions</p>
     </div>
 </section>
 
@@ -25,7 +25,7 @@
                         <span class="nav-icon">📊</span>
                         Dashboard
                     </a>
-                    <a href="{% url 'admin_applications' %}" class="nav-item active">
+                    <a href="{% url 'admin_applications' %}" class="nav-item">
                         <span class="nav-icon">📝</span>
                         All Applications
                     </a>
@@ -33,16 +33,14 @@
                         <span class="nav-icon">🐾</span>
                         Manage Pets
                     </a>
-                    <a href="{% url 'admin_contacts' %}" class="nav-item">
+                    <a href="{% url 'admin_contacts' %}" class="nav-item active">
                         <span class="nav-icon">📞</span>
                         Contact Messages
                     </a>
-                    {% if user.is_superuser %}
                     <a href="/admin/" class="nav-item">
                         <span class="nav-icon">⚙️</span>
                         Django Admin
                     </a>
-                    {% endif %}
                     <div class="nav-divider"></div>
                     <a href="{% url 'pets' %}" class="nav-item">
                         <span class="nav-icon">🏠</span>
@@ -60,72 +58,64 @@
                 <!-- Filters and Search -->
                 <div class="filters-section">
                     <div class="section-header">
-                        <h2>All Applications ({{ total_applications }})</h2>
+                        <h2>All Messages ({{ total_contacts }})</h2>
                         <div class="filter-controls">
                             <form method="get" class="filter-form">
-                                <select name="status" onchange="this.form.submit()">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-                                    <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
-                                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <select name="read" onchange="this.form.submit()">
+                                    <option value="">All Messages</option>
+                                    <option value="unread" {% if request.GET.read == 'unread' %}selected{% endif %}>Unread</option>
+                                    <option value="read" {% if request.GET.read == 'read' %}selected{% endif %}>Read</option>
                                 </select>
-                                <input type="text" name="search" placeholder="Search by applicant name, email, or pet name..." 
+                                <input type="text" name="search" placeholder="Search by name, email, or subject..." 
                                        value="{{ request.GET.search }}" class="search-input">
                                 <button type="submit" class="btn btn-small btn-primary">Filter</button>
-                                <a href="{% url 'admin_applications' %}" class="btn btn-small btn-outline">Clear</a>
+                                <a href="{% url 'admin_contacts' %}" class="btn btn-small btn-outline">Clear</a>
                             </form>
                         </div>
                     </div>
                 </div>
 
-                <!-- Applications Table -->
-                <div class="applications-section">
-                    {% if applications %}
-                    <div class="applications-table">
-                        {% for application in applications %}
-                        <div class="application-row">
-                            <div class="application-info">
-                                <div class="applicant-column">
-                                    <h3>{{ application.first_name }} {{ application.last_name }}</h3>
-                                    <p class="application-email">{{ application.email }}</p>
-                                    <p class="application-phone">📞 {{ application.phone }}</p>
-                                    <p class="application-date">{{ application.submitted_at|date:"M d, Y g:i A" }}</p>
-                                </div>
-                                <div class="pet-column">
-                                    <h4>{{ application.pet.name }}</h4>
-                                    <p>{{ application.pet.breed }}</p>
-                                    <p>{{ application.pet.age }} • {{ application.pet.size }}</p>
-                                    <p class="adoption-fee">${{ application.pet.adoption_fee }}</p>
-                                </div>
-                                <div class="details-column">
-                                    <p><strong>Housing:</strong> {{ application.housing_type|title }} ({{ application.own_or_rent|title }})</p>
-                                    <p><strong>Adults:</strong> {{ application.household_adults }}, <strong>Children:</strong> {{ application.household_children }}</p>
-                                    <p><strong>Other pets:</strong> {% if application.has_other_pets %}Yes{% else %}No{% endif %}</p>
-                                    {% if application.special_needs %}
-                                    <p class="special-needs">⚠️ Special needs pet</p>
+                <!-- Messages Table -->
+                <div class="contacts-section">
+                    {% if contacts %}
+                    <div class="contacts-table">
+                        {% for contact in contacts %}
+                        <div class="contact-row {% if not contact.is_read %}unread{% endif %}">
+                            <div class="contact-info">
+                                <div class="sender-info">
+                                    <h3>{{ contact.name }}</h3>
+                                    <p class="contact-email">
+                                        <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                                    </p>
+                                    {% if contact.phone %}
+                                    <p class="contact-phone">
+                                        <a href="tel:{{ contact.phone }}">📞 {{ contact.phone }}</a>
+                                    </p>
                                     {% endif %}
+                                    <p class="contact-date">{{ contact.created_at|date:"M d, Y g:i A" }}</p>
+                                </div>
+                                
+                                <div class="message-preview">
+                                    <h4>{{ contact.subject }}</h4>
+                                    <p class="message-text">{{ contact.message|truncatewords:20 }}</p>
                                 </div>
                             </div>
 
-                            <div class="status-column">
-                                <form method="post" action="{% url 'admin_update_application_status' application.id %}" class="status-form">
-                                    {% csrf_token %}
-                                    <select name="status" onchange="this.form.submit()" class="status-select status-{{ application.status }}">
-                                        <option value="pending" {% if application.status == 'pending' %}selected{% endif %}>Pending</option>
-                                        <option value="approved" {% if application.status == 'approved' %}selected{% endif %}>Approved</option>
-                                        <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                                        <option value="completed" {% if application.status == 'completed' %}selected{% endif %}>Completed</option>
-                                    </select>
-                                </form>
-                                {% if application.reviewed_at %}
-                                <p class="review-date">Reviewed: {{ application.reviewed_at|date:"M d" }}</p>
+                            <div class="contact-status">
+                                {% if not contact.is_read %}
+                                <span class="status-badge status-new">New</span>
+                                {% elif not contact.is_responded %}
+                                <span class="status-badge status-read">Read</span>
+                                {% else %}
+                                <span class="status-badge status-responded">Responded</span>
                                 {% endif %}
                             </div>
 
-                            <div class="actions-column">
-                                <a href="{% url 'admin_application_detail' application.id %}" class="btn btn-small btn-primary">Details</a>
-                                <a href="{% url 'pet_detail' application.pet.pk application.pet.slug %}" class="btn btn-small btn-outline">View Pet</a>
+                            <div class="contact-actions">
+                                <a href="{% url 'admin_contact_detail' contact.id %}" class="btn btn-small btn-primary">
+                                    {% if not contact.is_read %}View{% else %}Details{% endif %}
+                                </a>
+                                <a href="mailto:{{ contact.email }}?subject=Re: {{ contact.subject }}" class="btn btn-small btn-secondary">Reply</a>
                             </div>
                         </div>
                         {% endfor %}
@@ -153,11 +143,26 @@
                     {% endif %}
 
                     {% else %}
-                    <div class="no-applications">
-                        <h3>No applications found</h3>
-                        <p>No applications match your current filters.</p>
+                    <div class="no-contacts">
+                        <h3>No messages found</h3>
+                        <p>No contact messages match your current filters.</p>
                     </div>
                     {% endif %}
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="contacts-stats">
+                    <h3>Message Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ contacts|length }}</div>
+                            <div class="stat-label">Showing</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ total_contacts }}</div>
+                            <div class="stat-label">Total Messages</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -250,7 +255,9 @@
     gap: var(--spacing-xl);
 }
 
-.filters-section {
+.filters-section,
+.contacts-section,
+.contacts-stats {
     background: var(--white);
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
@@ -285,130 +292,110 @@
 }
 
 .search-input {
-    min-width: 250px;
+    min-width: 300px;
 }
 
-.applications-section {
-    background: var(--white);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-}
-
-.applications-table {
+.contacts-table {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
 }
 
-.application-row {
+.contact-row {
     display: grid;
-    grid-template-columns: 3fr auto auto;
+    grid-template-columns: 2fr auto auto;
     gap: var(--spacing-lg);
     padding: var(--spacing-lg);
     background: var(--background);
     border-radius: var(--radius-md);
     align-items: start;
     border-left: 4px solid var(--gray-medium);
+    transition: var(--transition);
 }
 
-.application-row.status-pending {
-    border-left-color: var(--warning);
+.contact-row.unread {
+    border-left-color: var(--primary-color);
+    background: #f8f9ff;
 }
 
-.application-row.status-approved {
-    border-left-color: var(--success);
+.contact-row:hover {
+    background: var(--gray-light);
 }
 
-.application-row.status-rejected {
-    border-left-color: var(--danger);
-}
-
-.application-row.status-completed {
-    border-left-color: var(--accent-color);
-}
-
-.application-info {
+.contact-info {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 2fr;
     gap: var(--spacing-lg);
 }
 
-.applicant-column h3,
-.pet-column h4 {
+.sender-info h3 {
     margin-bottom: var(--spacing-xs);
     color: var(--text-dark);
 }
 
-.application-email,
-.application-phone,
-.application-date {
+.contact-email,
+.contact-phone,
+.contact-date {
     margin: var(--spacing-xs) 0;
-    color: var(--text-light);
     font-size: var(--font-size-sm);
 }
 
-.pet-column h4 {
+.contact-email a,
+.contact-phone a {
     color: var(--primary-color);
+    text-decoration: none;
 }
 
-.adoption-fee {
+.contact-email a:hover,
+.contact-phone a:hover {
+    text-decoration: underline;
+}
+
+.contact-date {
+    color: var(--text-light);
+}
+
+.message-preview h4 {
     color: var(--accent-color);
-    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
 }
 
-.details-column p {
-    margin: var(--spacing-xs) 0;
-    font-size: var(--font-size-sm);
+.message-text {
+    color: var(--text-light);
+    line-height: 1.5;
+    margin: 0;
 }
 
-.special-needs {
-    color: var(--warning);
-    font-weight: 600;
-}
-
-.status-column {
+.contact-status {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
 }
 
-.status-select {
-    padding: var(--spacing-sm);
-    border: 2px solid var(--gray-medium);
+.status-badge {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
     font-weight: 600;
-    cursor: pointer;
+    text-transform: uppercase;
 }
 
-.status-select.status-pending {
+.status-new {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.status-read {
     background: var(--warning);
     color: var(--text-dark);
 }
 
-.status-select.status-approved {
+.status-responded {
     background: var(--success);
     color: var(--white);
 }
 
-.status-select.status-rejected {
-    background: var(--danger);
-    color: var(--white);
-}
-
-.status-select.status-completed {
-    background: var(--accent-color);
-    color: var(--white);
-}
-
-.review-date {
-    font-size: var(--font-size-xs);
-    color: var(--text-light);
-}
-
-.actions-column {
+.contact-actions {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
@@ -449,10 +436,39 @@
     font-weight: 500;
 }
 
-.no-applications {
+.no-contacts {
     text-align: center;
     padding: var(--spacing-3xl);
     color: var(--text-light);
+}
+
+.contacts-stats h3 {
+    color: var(--accent-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.stat-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--background);
+    border-radius: var(--radius-md);
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: var(--font-size-sm);
 }
 
 .lead {
