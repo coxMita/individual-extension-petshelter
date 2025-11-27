@@ -58,26 +58,30 @@
             <!-- Main Content -->
             <div class="admin-main">
                 <!-- Filters and Search -->
-                <div class="filters-section">
-                    <div class="section-header">
-                        <h2>All Applications ({{ total_applications }})</h2>
-                        <div class="filter-controls">
-                            <form method="get" class="filter-form">
-                                <select name="status" onchange="this.form.submit()">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-                                    <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
-                                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
-                                </select>
-                                <input type="text" name="search" placeholder="Search by applicant name, email, or pet name..." 
-                                       value="{{ request.GET.search }}" class="search-input">
-                                <button type="submit" class="btn btn-small btn-primary">Filter</button>
-                                <a href="{% url 'admin_applications' %}" class="btn btn-small btn-outline">Clear</a>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<div class="filters-section">
+    <div class="section-header">
+        <h2>All Applications ({{ total_applications }})</h2>
+        <div class="filter-controls">
+            <form method="get" class="filter-form">
+                <select name="status" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+                <input type="text" name="search" placeholder="Search by applicant name, email, or pet name..." 
+                       value="{{ request.GET.search }}" class="search-input">
+                <button type="submit" class="btn btn-small btn-primary">Filter</button>
+                <a href="{% url 'admin_applications' %}" class="btn btn-small btn-outline">Clear</a>
+            </form>
+            <!-- CSV Export Button -->
+            <a href="{% url 'export_applications' %}" class="btn btn-small btn-success" style="margin-left: 10px;">
+                📥 Export to CSV
+            </a>
+        </div>
+    </div>
+</div>
 
                 <!-- Applications Table -->
                 <div class="applications-section">
@@ -458,6 +462,19 @@
 .lead {
     font-size: var(--font-size-xl);
     opacity: 0.9;
+}
+
+/* Success button styling for CSV export */
+.btn-success {
+    background-color: var(--success);
+    color: var(--white);
+    border: 2px solid var(--success);
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    transform: translateY(-2px);
 }
 </style>
 {% endblock %}

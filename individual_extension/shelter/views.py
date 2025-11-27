@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+import csv
 from .models import Pet, AdoptionApplication, ContactMessage, SuccessStory
 from .forms import CustomUserCreationForm, UserUpdateForm
 from django.core.mail import send_mail
@@ -654,6 +655,120 @@ def admin_pet_edit(request, pet_id):
     
     return render(request, 'shelter/admin/admin_pet_edit.html', {'pet': pet})
 
+@login_required
+@user_passes_test(is_admin_user)
+def export_applications_csv(request):
+    """
+    Export all adoption applications to a CSV file for download.
+    This allows admins to analyze data in Excel or other spreadsheet programs.
+    """
+    # Create the HTTP response with CSV content type
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pawhaven_applications.csv"'
+    
+    # Create a CSV writer object
+    writer = csv.writer(response)
+    
+    # Write the header row with column names
+    writer.writerow([
+        'Application ID',
+        'Date Submitted',
+        'Applicant Name',
+        'Email',
+        'Phone',
+        'Pet Name',
+        'Pet Breed',
+        'Status',
+        'Housing Type',
+        'Own/Rent',
+        'Has Other Pets',
+        'Household Adults',
+        'Household Children',
+        'Reviewed Date'
+    ])
+    
+    # Get all applications with related pet data (select_related optimizes the query)
+    applications = AdoptionApplication.objects.all().select_related('pet').order_by('-submitted_at')
+    
+    # Write each application as a row in the CSV
+    for app in applications:
+        writer.writerow([
+            app.id,
+            app.submitted_at.strftime('%Y-%m-%d %H:%M'),
+            f"{app.first_name} {app.last_name}",
+            app.email,
+            app.phone,
+            app.pet.name,
+            app.pet.breed,
+            app.get_status_display(),
+            app.housing_type.title(),
+            app.own_or_rent.title(),
+            'Yes' if app.has_other_pets else 'No',
+            app.household_adults,
+            app.household_children,
+            app.reviewed_at.strftime('%Y-%m-%d %H:%M') if app.reviewed_at else 'Not reviewed'
+        ])
+    
+    return response
+
+@login_required
+@user_passes_test(is_admin_user)
+def export_pets_csv(request):
+    """
+    Export all pets to a CSV file for download.
+    Useful for inventory management and reporting.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pawhaven_pets.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Write header row
+    writer.writerow([
+        'Pet ID',
+        'Name',
+        'Type',
+        'Breed',
+        'Age',
+        'Gender',
+        'Size',
+        'Color',
+        'Status',
+        'Arrival Date',
+        'Adoption Fee',
+        'Vaccinated',
+        'Spayed/Neutered',
+        'Microchipped',
+        'Special Needs',
+        'Featured',
+        'Applications Count'
+    ])
+    
+    # Get all pets with application counts
+    pets = Pet.objects.all().order_by('-arrival_date')
+    
+    for pet in pets:
+        writer.writerow([
+            pet.id,
+            pet.name,
+            pet.get_type_display(),
+            pet.breed,
+            pet.age,
+            pet.gender,
+            pet.size,
+            pet.color,
+            pet.get_status_display(),
+            pet.arrival_date.strftime('%Y-%m-%d'),
+            f"${pet.adoption_fee}",
+            'Yes' if pet.vaccinated else 'No',
+            'Yes' if pet.spayed_neutered else 'No',
+            'Yes' if pet.microchipped else 'No',
+            'Yes' if pet.special_needs else 'No',
+            'Yes' if pet.featured else 'No',
+            pet.applications.count()
+        ])
+    
+    return response
 
 @login_required
 @user_passes_test(is_admin_user)

@@ -44,6 +44,10 @@ urlpatterns = [
     path('admin-dashboard/applications/<int:application_id>/update-status/', views.admin_update_application_status, name='admin_update_application_status'),
     path('admin-dashboard/applications/<int:application_id>/update-notes/', views.admin_update_application_notes, name='admin_update_application_notes'),
     path('admin-dashboard/pets/', views.admin_pets, name='admin_pets'),
+   
+    # CSV Export URLs
+    path('admin-dashboard/applications/export/', views.export_applications_csv, name='export_applications'),
+    path('admin-dashboard/pets/export/', views.export_pets_csv, name='export_pets'),
     
     # Pet management URLs for managers
     path('admin-dashboard/pets/add/', views.admin_pet_add, name='admin_pet_add'),

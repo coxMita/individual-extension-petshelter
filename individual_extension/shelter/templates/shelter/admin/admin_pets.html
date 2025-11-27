@@ -129,6 +129,7 @@
                                     <a href="{% url 'pet_detail' pet.pk pet.slug %}" class="btn-compact btn-outline">View</a>
                                     <a href="{% url 'admin_pet_edit' pet.id %}" class="btn-compact btn-primary">Edit</a>                                    {% if pet.status == 'available' %}
                                     <a href="{% url 'admin_applications' %}?search={{ pet.name }}" class="btn-compact btn-secondary">Apps</a>
+
                                     {% endif %}
                                 </div>
                             </div>
@@ -182,6 +183,7 @@
                     
                     <div class="quick-actions">
                         <a href="{% url 'admin_pet_add' %}" class="btn btn-primary">➕ Add New Pet</a>
+                        <a href="{% url 'export_pets' %}" class="btn btn-success">📥 Export to CSV</a>
                         <a href="/admin/shelter/pet/" class="btn btn-outline">Django Admin</a>
                     </div>
                 </div>
@@ -574,6 +576,16 @@
 .lead {
     font-size: var(--font-size-xl);
     opacity: 0.9;
+}
+.btn-success {
+    background-color: var(--success);
+    color: var(--white);
+    border: 2px solid var(--success);
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
 }
 </style>
 {% endblock %}
