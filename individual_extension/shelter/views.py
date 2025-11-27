@@ -10,7 +10,8 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import Pet, AdoptionApplication, ContactMessage, SuccessStory
 from .forms import CustomUserCreationForm, UserUpdateForm
-
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 # Existing views (unchanged)
 def home(request):
@@ -357,11 +358,68 @@ def admin_application_detail(request, application_id):
     }
     return render(request, 'shelter/admin/admin_application_detail.html', context)
 
+def send_status_email(application, status):
+    """
+    Send email notification to applicant when their application status changes.
+    This function creates appropriate messages for each status type.
+    """
+    # Create different subject lines based on the application status
+    subject_map = {
+        'pending': f'Application Received - {application.pet.name}',
+        'approved': f'Great News! Your Application for {application.pet.name} is Approved',
+        'rejected': f'Update on Your Application for {application.pet.name}',
+        'completed': f'Welcome to the PawHaven Family! - {application.pet.name}',
+    }
+    
+    # Get the appropriate subject line, with a fallback
+    subject = subject_map.get(status, 'Application Update')
+    
+    # Create the email body
+    message = f"""
+Dear {application.first_name} {application.last_name},
+
+Your adoption application for {application.pet.name} has been updated to: {status.upper()}.
+
+"""
+    
+    # Add status-specific messages
+    if status == 'approved':
+        message += "Congratulations! Your application has been approved. Please contact us to schedule a meet & greet with your new friend.\n\n"
+    elif status == 'pending':
+        message += "Thank you for your application. We will carefully review it within 24-48 hours and get back to you soon.\n\n"
+    elif status == 'completed':
+        message += "Congratulations on completing your adoption! Welcome to the PawHaven family. We're so happy for you and your new companion!\n\n"
+    elif status == 'rejected':
+        message += "Unfortunately, we were unable to approve this application at this time. Please feel free to contact us for more information or to discuss other pets that might be a better match.\n\n"
+    
+    message += """Best regards,
+The PawHaven Pet Shelter Team
+Phone: (555) 123-PETS
+Email: info@pawhaven.com
+"""
+    
+    # Send the email (will print to console in development)
+    try:
+        send_mail(
+            subject,
+            message,
+            'noreply@pawhaven.com',  # From email
+            [application.email],      # To email (the applicant)
+            fail_silently=False,      # Raise errors so we know if something goes wrong
+        )
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
 
 @login_required
 @user_passes_test(is_admin_user)
 def admin_update_application_status(request, application_id):
-    """Update application status"""
+    """
+    Update application status and send email notification to the applicant.
+    This handles both the status change and the related pet status updates.
+    """
     if request.method == 'POST':
         application = get_object_or_404(AdoptionApplication, id=application_id)
         new_status = request.POST.get('status')
@@ -372,6 +430,9 @@ def admin_update_application_status(request, application_id):
             application.reviewed_at = timezone.now()
             application.save()
             
+            # Send email notification to the applicant 
+            email_sent = send_status_email(application, new_status)
+            
             # Update pet status if application is completed
             if new_status == 'completed':
                 application.pet.status = 'adopted'
@@ -381,7 +442,11 @@ def admin_update_application_status(request, application_id):
                 application.pet.status = 'available'
                 application.pet.save()
             
-            messages.success(request, f'Application status updated to {application.get_status_display()}')
+            # Show success message to the admin with email confirmation
+            if email_sent:
+                messages.success(request, f'Application status updated to {application.get_status_display()} and email notification sent to {application.email}')
+            else:
+                messages.warning(request, f'Application status updated to {application.get_status_display()} but email failed to send')
         else:
             messages.error(request, 'Invalid status')
     
